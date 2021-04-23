@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Deploys a Lambda function that ships CloudWatch log group events to Elasticserach.
+Parameters:
+  Environment:
+    Type: String
+    Description: Value for the ENV environment variable.
+    AllowedPattern: '[A-Za-z][A-Za-z0-9]+'
+  ElasticsearchEndpoint:
+    Type: String
+    Description: The Elasticsearch endpoint.
+  LogDebug:
+    Type: String
+    Description: When set to true will provide additional details in the log output.
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  Timeout:
+    Type: Number
+    Default: 10
+    Description: Lambda timeout setting. Default is 10 seconds.
+    MinValue: 6
+    MaxValue: 30
+
+Resources:
+  CloudWatchLogsToElasticsearchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Lambda function that handles CloudWatch log group events and ships them to Elasticsearch.
+      FunctionName: !Sub 'CloudWatchLogsToElasticsearch-${Environment}'
+      Handler: index.handler
+      Timeout: !Ref Timeout
+      CodeUri: .
+      Runtime: nodejs10.x
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          ENV: !Ref Environment
+          ES_ENDPOINT: !Ref ElasticsearchEndpoint
+          LOG_DEBUG: !Ref LogDebug
+      Policies:
+        Version: '2012-10-17'
+        Statement:
+         - Action: es:ESHttpPost
+           Effect: Allow
+           Resource: 'arn:aws:es:*:*:domain/*'
+
+  CloudWatchLogsInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt CloudWatchLogsToElasticsearchFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: !Sub 'logs.${AWS::Region}.amazonaws.com'
+
+Outputs:
+  Arn:
+    Description: 'CloudWatchLogsToElasticsearchFunction Lambda Function ARN'
+    Value: !GetAtt CloudWatchLogsToElasticsearchFunction.Arn
+  Role:
+    Description: 'Implicit IAM Role created for CloudWatchLogsToElasticsearchFunction'
+    Value: !GetAtt CloudWatchLogsToElasticsearchFunctionRole.Arn
+

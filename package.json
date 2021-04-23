@@ -1,0 +1,85 @@
+{
+  "name": "cloudwatch-logs-to-es",
+  "version": "1.0.0",
+  "description": "Lambda function that process CloudWatch log group eventa and ships them to Elasticsearch.",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "NorthBay Labs Team",
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "pretest": "eslint --format table --ignore-path .gitignore .",
+    "lint": "eslint --format table --ignore-path .gitignore .",
+    "sam:build": "sam build --manifest package.json",
+    "sam:package": "cross-var sam package --s3-bucket $S3_BUCKET --output-template-file packaged.yaml --debug",
+    "test": "mocha tests/unit/"
+  },
+  "nyc": {
+    "check-coverage": true,
+    "exclude": "tests/**",
+    "reporter": [
+      "text",
+      "html"
+    ],
+    "branches": 80,
+    "functions": 80,
+    "lines": 90,
+    "statements": 80
+  },
+  "eslintConfig": {
+    "env": {
+      "jasmine": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "rules": {
+      "no-mixed-spaces-and-tabs": 1,
+      "semi": "error",
+      "no-console": 0,
+      "node/no-unpublished-require": [
+        "error",
+        {
+          "allowModules": [
+            "aws-sdk",
+            "chai",
+            "chai-as-promised",
+            "chai-string"
+          ]
+        }
+      ]
+    },
+    "plugins": [
+      "security",
+      "mocha"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:node/recommended",
+      "plugin:security/recommended"
+    ]
+  },
+  "dependencies": {
+    "lambda-log": "^2.3.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "commander": "^3.0.0",
+    "cross-var-no-babel": "^1.2.0",
+    "eslint": "^5.16.0",
+    "eslint-plugin-jsdoc": "^7.0.2",
+    "eslint-plugin-mocha": "^5.3.0",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-security": "^1.4.0",
+    "mocha": "^6.1.4",
+    "nyc": "^14.1.1"
+  }
+}
